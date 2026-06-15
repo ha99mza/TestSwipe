@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 const pages = [
-  { title: 'Page 1', background: '#2563eb' },
-  { title: 'Page 2', background: '#16a34a' }
+  { title: '', background: '#2563eb' },
+  { title: '', background: '#16a34a' }
 ]
 
 const SWIPE_THRESHOLD = 50
@@ -12,6 +12,15 @@ function App(): React.JSX.Element {
   const [dragOffset, setDragOffset] = useState(0)
   const isDragging = useRef(false)
   const startX = useRef(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const prevent = (e: TouchEvent): void => e.preventDefault()
+    el.addEventListener('touchstart', prevent, { passive: false })
+    return () => el.removeEventListener('touchstart', prevent)
+  }, [])
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
     isDragging.current = true
@@ -44,12 +53,14 @@ function App(): React.JSX.Element {
 
   return (
     <div
+      ref={containerRef}
       style={{
         width: '100vw',
         height: '100vh',
         overflow: 'hidden',
         position: 'relative',
-        userSelect: 'none'
+        userSelect: 'none',
+        touchAction: 'none'
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
