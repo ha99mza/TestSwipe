@@ -1,4 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import type { Swiper as SwiperType } from 'swiper'
+import 'swiper/css'
 
 const pages = [
   { title: '', background: '#2563eb' },
@@ -7,151 +10,82 @@ const pages = [
   { title: '', background: '#fdee15' }
 ]
 
-const SWIPE_THRESHOLD = 50
-const INTERACTIVE = 'button, a, input, select, textarea'
-
 function App(): React.JSX.Element {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [dragOffset, setDragOffset] = useState(0)
   const [counts, setCounts] = useState<number[]>(pages.map(() => 0))
-  const isDragging = useRef(false)
-  const startX = useRef(0)
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    const prevent = (e: TouchEvent): void => {
-      if ((e.target as HTMLElement).closest(INTERACTIVE)) return
-      e.preventDefault()
-    }
-    el.addEventListener('touchstart', prevent, { passive: false })
-    return () => el.removeEventListener('touchstart', prevent)
-  }, [])
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
-    if ((e.target as HTMLElement).closest(INTERACTIVE)) return
-    isDragging.current = true
-    startX.current = e.clientX
-    ;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
-  }
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>): void => {
-    if (!isDragging.current) return
-    const delta = e.clientX - startX.current
-    const clamped =
-      (activeIndex === 0 && delta > 0) || (activeIndex === pages.length - 1 && delta < 0)
-        ? delta * 0.2
-        : delta
-    setDragOffset(clamped)
-  }
-
-  const handlePointerUp = (): void => {
-    if (!isDragging.current) return
-    isDragging.current = false
-
-    if (dragOffset < -SWIPE_THRESHOLD && activeIndex < pages.length - 1) {
-      setActiveIndex((i) => i + 1)
-    } else if (dragOffset > SWIPE_THRESHOLD && activeIndex > 0) {
-      setActiveIndex((i) => i - 1)
-    }
-
-    setDragOffset(0)
-  }
 
   const handleCount = (pageIndex: number): void => {
     setCounts((prev) => prev.map((c, i) => (i === pageIndex ? c + 1 : c)))
   }
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        width: '100vw',
-        height: '100vh',
-        overflow: 'hidden',
-        position: 'relative',
-        userSelect: 'none',
-        touchAction: 'none'
-      }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-    >
-      {/* Slide strip */}
-      <div
-        style={{
-          display: 'flex',
-          width: `${pages.length * 100}vw`,
-          height: '100%',
-          transform: `translateX(calc(${-activeIndex * 100}vw + ${dragOffset}px))`,
-          transition: isDragging.current ? 'none' : 'transform 0.3s ease'
-        }}
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+      <Swiper
+        slidesPerView={1}
+        style={{ width: '100%', height: '100%' }}
+        onSlideChange={(swiper: SwiperType) => setActiveIndex(swiper.activeIndex)}
       >
         {pages.map((page, i) => (
-          <div
-            key={i}
-            style={{
-              width: '100vw',
-              height: '100%',
-              background: page.background,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '32px',
-              flexShrink: 0
-            }}
-          >
-            <h1
+          <SwiperSlide key={i}>
+            <div
               style={{
-                color: '#ffffff',
-                fontSize: '3rem',
-                fontWeight: 700,
-                letterSpacing: '0.05em',
-                margin: 0
+                width: '100%',
+                height: '100%',
+                background: page.background,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '32px'
               }}
             >
-              {page.title}
-            </h1>
-            <button
-              onClick={() => handleCount(i)}
-              style={{
-                padding: '14px 32px',
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                borderRadius: '12px',
-                border: '2px solid rgba(255,255,255,0.6)',
-                background: 'rgba(255,255,255,0.15)',
-                color: '#ffffff',
-                cursor: 'pointer',
-                backdropFilter: 'blur(8px)',
-                transition: 'background 0.2s'
-              }}
-            >
-              Cliqué {counts[i]} fois
-            </button>
-            <button
-              onClick={() => alert(`Action page ${i + 1}`)}
-              style={{
-                padding: '14px 32px',
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                borderRadius: '12px',
-                border: '2px solid rgba(255,255,255,0.6)',
-                background: 'rgba(255,255,255,0.15)',
-                color: '#ffffff',
-                cursor: 'pointer',
-                backdropFilter: 'blur(8px)',
-                transition: 'background 0.2s'
-              }}
-            >
-              Action
-            </button>
-          </div>
+              <h1
+                style={{
+                  color: '#ffffff',
+                  fontSize: '3rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.05em',
+                  margin: 0
+                }}
+              >
+                {page.title}
+              </h1>
+              <button
+                onClick={() => handleCount(i)}
+                style={{
+                  padding: '14px 32px',
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  borderRadius: '12px',
+                  border: '2px solid rgba(255,255,255,0.6)',
+                  background: 'rgba(255,255,255,0.15)',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(8px)'
+                }}
+              >
+                Cliqué {counts[i]} fois
+              </button>
+              <button
+                onClick={() => alert(`Action page ${i + 1}`)}
+                style={{
+                  padding: '14px 32px',
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  borderRadius: '12px',
+                  border: '2px solid rgba(255,255,255,0.6)',
+                  background: 'rgba(255,255,255,0.15)',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(8px)'
+                }}
+              >
+                Action
+              </button>
+            </div>
+          </SwiperSlide>
         ))}
-      </div>
+      </Swiper>
 
       {/* Dot indicators */}
       <div
@@ -162,6 +96,7 @@ function App(): React.JSX.Element {
           transform: 'translateX(-50%)',
           display: 'flex',
           gap: '10px',
+          zIndex: 10,
           pointerEvents: 'none'
         }}
       >
