@@ -8,10 +8,12 @@ const pages = [
 ]
 
 const SWIPE_THRESHOLD = 50
+const INTERACTIVE = 'button, a, input, select, textarea'
 
 function App(): React.JSX.Element {
   const [activeIndex, setActiveIndex] = useState(0)
   const [dragOffset, setDragOffset] = useState(0)
+  const [counts, setCounts] = useState<number[]>(pages.map(() => 0))
   const isDragging = useRef(false)
   const startX = useRef(0)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -19,12 +21,16 @@ function App(): React.JSX.Element {
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    const prevent = (e: TouchEvent): void => e.preventDefault()
+    const prevent = (e: TouchEvent): void => {
+      if ((e.target as HTMLElement).closest(INTERACTIVE)) return
+      e.preventDefault()
+    }
     el.addEventListener('touchstart', prevent, { passive: false })
     return () => el.removeEventListener('touchstart', prevent)
   }, [])
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
+    if ((e.target as HTMLElement).closest(INTERACTIVE)) return
     isDragging.current = true
     startX.current = e.clientX
     ;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
@@ -51,6 +57,10 @@ function App(): React.JSX.Element {
     }
 
     setDragOffset(0)
+  }
+
+  const handleCount = (pageIndex: number): void => {
+    setCounts((prev) => prev.map((c, i) => (i === pageIndex ? c + 1 : c)))
   }
 
   return (
@@ -87,8 +97,10 @@ function App(): React.JSX.Element {
               height: '100%',
               background: page.background,
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
+              gap: '32px',
               flexShrink: 0
             }}
           >
@@ -103,6 +115,40 @@ function App(): React.JSX.Element {
             >
               {page.title}
             </h1>
+            <button
+              onClick={() => handleCount(i)}
+              style={{
+                padding: '14px 32px',
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                borderRadius: '12px',
+                border: '2px solid rgba(255,255,255,0.6)',
+                background: 'rgba(255,255,255,0.15)',
+                color: '#ffffff',
+                cursor: 'pointer',
+                backdropFilter: 'blur(8px)',
+                transition: 'background 0.2s'
+              }}
+            >
+              Cliqué {counts[i]} fois
+            </button>
+            <button
+              onClick={() => alert(`Action page ${i + 1}`)}
+              style={{
+                padding: '14px 32px',
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                borderRadius: '12px',
+                border: '2px solid rgba(255,255,255,0.6)',
+                background: 'rgba(255,255,255,0.15)',
+                color: '#ffffff',
+                cursor: 'pointer',
+                backdropFilter: 'blur(8px)',
+                transition: 'background 0.2s'
+              }}
+            >
+              Action
+            </button>
           </div>
         ))}
       </div>
