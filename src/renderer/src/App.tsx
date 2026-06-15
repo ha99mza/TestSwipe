@@ -2,7 +2,9 @@ import { useState, useRef, useEffect } from 'react'
 
 const pages = [
   { title: '', background: '#2563eb' },
-  { title: '', background: '#16a34a' }
+  { title: '', background: '#16a34a' },
+  { title: '', background: '#a31645' },
+  { title: '', background: '#fdee15' }
 ]
 
 const SWIPE_THRESHOLD = 50
